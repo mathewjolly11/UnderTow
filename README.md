@@ -29,7 +29,7 @@ The logic of Undertow centers around **Proactive Stress Detection and De-escalat
 - **Browser Support**: Assumes the user is operating on a Chromium-based browser (Chrome/Edge) for full support of the `window.SpeechRecognition` API. Fallback UI warnings are provided for unsupported browsers (Firefox/Safari).
 - **Environment**: Assumes the user has access to a microphone and a safe space to speak aloud.
 - **AI Limitations**: The application clearly assumes and states that it is an AI companion and *not* a substitute for professional medical or psychiatric care (explicitly disclaimed in the Crisis Overlay).
-- **Rate Limits**: Assumes standard hackathon/demo traffic, mitigated by a sliding-window in-memory rate limiter on Gemini Server Actions to prevent API quota exhaustion.
+- **Rate Limits**: Assumes standard hackathon/demo traffic, mitigated by a database-backed rate limiter on Gemini Server Actions to prevent API quota exhaustion across distributed environments.
 
 ---
 
@@ -86,6 +86,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📖 Hackathon Documentation & Resources
 
-- [Judge Demo Script (3-Minute Presentation)](./JUDGE_DEMO.md)
+- [Architecture Documentation](./ARCHITECTURE.md)
+- [Testing Guide](./TESTING.md)
+- [Judge Demo Script](./JUDGE_DEMO.md)
 - [Production Deployment Guide](./DEPLOYMENT.md)
 - [Database SQL Schema & RLS Policies](./supabase/schema.sql)

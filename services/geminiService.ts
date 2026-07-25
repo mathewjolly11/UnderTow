@@ -1,7 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
 import { AcousticMetrics } from '@/components/StressMeter';
 import { UserMemory } from '@/types/database';
-import { getGeminiApiKey, rotateGeminiApiKey } from '@/services/geminiKeyRotation';
+import { getGeminiApiKey } from '@/services/geminiKeyRotation';
+import { withRetry } from '@/lib/utils/withRetry';
 
 export interface GeminiStressEvaluation {
   classification: 'Calm' | 'Elevated' | 'Crisis';
@@ -71,13 +72,13 @@ REQUIRED JSON FORMAT:
 }
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
       },
-    });
+    }));
 
     const responseText = response.text;
     if (responseText) {
@@ -91,11 +92,7 @@ REQUIRED JSON FORMAT:
     }
     throw new Error('Empty text from Gemini response');
   } catch (err: unknown) {
-    const errorObj = err as { status?: number; message?: string };
     console.warn('Gemini API evaluation fallback:', err);
-    if (errorObj?.status === 429 || errorObj?.message?.includes('429') || errorObj?.message?.includes('quota')) {
-      rotateGeminiApiKey();
-    }
     return {
       classification: metrics.stressState === 'Acute' ? 'Crisis' : metrics.stressState === 'High' ? 'Elevated' : 'Calm',
       confidence: 0.88,

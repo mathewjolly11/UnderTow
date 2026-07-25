@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { ShieldCheck, HeartPulse } from 'lucide-react';
 
 export interface AcousticMetrics {
@@ -11,21 +12,22 @@ export interface AcousticMetrics {
   stressScore: number; // 0 - 100
 }
 
-export function StressMeter({ metrics }: { metrics: AcousticMetrics }) {
-  const getStressColor = (state: string) => {
-    switch (state) {
-      case 'Calm':
-        return { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', bar: 'bg-emerald-500' };
-      case 'Mild':
-        return { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', bar: 'bg-yellow-500' };
-      case 'High':
-        return { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', bar: 'bg-orange-500' };
-      case 'Acute':
-        return { text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', bar: 'bg-red-500' };
-      default:
-        return { text: 'text-[#6366F1]', bg: 'bg-[#6366F1]/10', border: 'border-[#6366F1]/20', bar: 'bg-[#6366F1]' };
-    }
-  };
+const getStressColor = (state: string) => {
+  switch (state) {
+    case 'Calm':
+      return { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', bar: 'bg-emerald-500' };
+    case 'Mild':
+      return { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', bar: 'bg-yellow-500' };
+    case 'High':
+      return { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', bar: 'bg-orange-500' };
+    case 'Acute':
+      return { text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', bar: 'bg-red-500' };
+    default:
+      return { text: 'text-[#6366F1]', bg: 'bg-[#6366F1]/10', border: 'border-[#6366F1]/20', bar: 'bg-[#6366F1]' };
+  }
+};
+
+export const StressMeter = React.memo(function StressMeter({ metrics }: { metrics: AcousticMetrics }) {
 
   const style = getStressColor(metrics.stressState);
 
@@ -62,7 +64,13 @@ export function StressMeter({ metrics }: { metrics: AcousticMetrics }) {
           <span>High (51-75)</span>
           <span>Acute (76-100)</span>
         </div>
-        <div className="h-3 w-full bg-[#18181B] rounded-full overflow-hidden border border-[#27272A] p-0.5 relative">
+        <div 
+          className="h-3 w-full bg-[#18181B] rounded-full overflow-hidden border border-[#27272A] p-0.5 relative"
+          role="progressbar"
+          aria-valuenow={metrics.stressScore}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className={`h-full ${style.bar} rounded-full transition-all duration-700 ease-out`}
             style={{ width: `${Math.max(5, metrics.stressScore)}%` }}
@@ -102,4 +110,4 @@ export function StressMeter({ metrics }: { metrics: AcousticMetrics }) {
       </div>
     </div>
   );
-}
+});

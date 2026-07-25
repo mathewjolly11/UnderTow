@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
-import { getGeminiApiKey, rotateGeminiApiKey } from '@/services/geminiKeyRotation';
+import { getGeminiApiKey } from '@/services/geminiKeyRotation';
+import { withRetry } from '@/lib/utils/withRetry';
 
 export interface RoleplayMessage {
   sender: 'user' | 'partner';
@@ -62,18 +63,14 @@ INSTRUCTIONS:
 
     const prompt = `${systemPrompt}\n\nCONVERSATION HISTORY:\n${formattedHistory}\n\nPARTNER (reply dynamically in 1-3 new sentences):`;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
-    });
+    }));
 
     return response.text?.trim() || "I hear your refusal, but I really think you should join us for just one round.";
   } catch (err: unknown) {
-    const errorObj = err as { status?: number; message?: string };
     console.warn('Gemini roleplay partner fallback:', err);
-    if (errorObj?.status === 429 || errorObj?.status === 401 || errorObj?.message?.includes('429') || errorObj?.message?.includes('401') || errorObj?.message?.includes('UNAUTHENTICATED')) {
-      rotateGeminiApiKey();
-    }
     const dynamicFallbacks = [
       `I hear you saying "${chatHistory[chatHistory.length - 1]?.text || 'no'}", but why not just take a small break with us?`,
       `Are you completely sure about that? We've all been looking forward to catching up tonight.`,
@@ -121,11 +118,11 @@ Return a valid JSON object matching this schema:
 }
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' },
-    });
+    }));
 
     if (response.text) {
       const parsed = JSON.parse(response.text);

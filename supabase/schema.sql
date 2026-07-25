@@ -155,3 +155,19 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- 9. Rate Limits Table
+CREATE TABLE IF NOT EXISTS public.rate_limits (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL,
+  request_count INT DEFAULT 1,
+  window_start TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, endpoint)
+);
+
+ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view and manage their own rate limits"
+  ON public.rate_limits FOR ALL USING (auth.uid() = user_id);
+

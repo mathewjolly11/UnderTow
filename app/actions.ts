@@ -8,6 +8,7 @@ import { rewriteCaregiverMessageWithGemini } from '@/services/geminiCaregiverCoa
 import { AcousticMetrics } from '@/components/StressMeter';
 import { UserMemory, SafePerson } from '@/types/database';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const saveVoiceSessionSchema = z.object({
   transcript: z.string().min(1),
@@ -37,20 +38,33 @@ const updateOnboardingProfileSchema = z.object({
 
 const evaluateStressSchema = z.object({
   transcript: z.string(),
-  metrics: z.unknown(),
-  userMemory: z.unknown().optional().nullable(),
+  metrics: z.object({
+    speechRate: z.number(),
+    volume: z.number(),
+    pauseCount: z.number(),
+    duration: z.number(),
+    stressState: z.enum(['Calm', 'Mild', 'High', 'Acute']),
+    stressScore: z.number(),
+  }),
+  userMemory: z.any().optional().nullable(),
 });
 
 const generateRoleplayResponseSchema = z.object({
   scenario: z.string(),
   persona: z.enum(['Friend', 'Family', 'Dealer', 'Coworker', 'Custom']),
-  chatHistory: z.array(z.unknown()),
+  chatHistory: z.array(z.object({
+    sender: z.enum(['user', 'partner']),
+    text: z.string()
+  })),
 });
 
 const summarizeRoleplaySessionSchema = z.object({
   scenario: z.string(),
   persona: z.string(),
-  chatHistory: z.array(z.unknown()),
+  chatHistory: z.array(z.object({
+    sender: z.enum(['user', 'partner']),
+    text: z.string()
+  })),
 });
 
 const rewriteCaregiverMessageSchema = z.object({
@@ -173,31 +187,7 @@ export async function updateOnboardingProfileAction(data: {
   return { success: true };
 }
 
-// In-Memory Rate Limiter for Gemini Calls
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS = 10;
-const rateLimits = new Map<string, { count: number; timestamp: number }>();
 
-async function checkRateLimit() {
-  const supabase = await createClientServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  const identifier = user?.id || 'anonymous';
-  
-  const now = Date.now();
-  const record = rateLimits.get(identifier);
-
-  if (!record || (now - record.timestamp) > RATE_LIMIT_WINDOW) {
-    rateLimits.set(identifier, { count: 1, timestamp: now });
-    return true;
-  }
-
-  if (record.count >= MAX_REQUESTS) {
-    return false;
-  }
-
-  record.count += 1;
-  return true;
-}
 
 // Gemini Server Actions
 export async function evaluateStressAction(
@@ -208,7 +198,7 @@ export async function evaluateStressAction(
   const parsed = evaluateStressSchema.safeParse({ transcript, metrics, userMemory });
   if (!parsed.success) throw new Error('Invalid input');
 
-  const allowed = await checkRateLimit();
+  const allowed = await checkRateLimit('evaluateStress', 10, 60000);
   if (!allowed) throw new Error('Rate limit exceeded for Gemini API calls. Please try again later.');
 
   return evaluateStressWithGemini(transcript, metrics, userMemory);
@@ -222,7 +212,7 @@ export async function generateRoleplayResponseAction(
   const parsed = generateRoleplayResponseSchema.safeParse({ scenario, persona, chatHistory });
   if (!parsed.success) throw new Error('Invalid input');
 
-  const allowed = await checkRateLimit();
+  const allowed = await checkRateLimit('roleplayResponse', 10, 60000);
   if (!allowed) throw new Error('Rate limit exceeded for Gemini API calls. Please try again later.');
 
   return generateRoleplayResponse(scenario, persona, chatHistory);
@@ -246,7 +236,7 @@ export async function rewriteCaregiverMessageAction(
   const parsed = rewriteCaregiverMessageSchema.safeParse({ draftMessage, userStage });
   if (!parsed.success) throw new Error('Invalid input');
 
-  const allowed = await checkRateLimit();
+  const allowed = await checkRateLimit('caregiverCoach', 10, 60000);
   if (!allowed) throw new Error('Rate limit exceeded for Gemini API calls. Please try again later.');
 
   return rewriteCaregiverMessageWithGemini(draftMessage, userStage);

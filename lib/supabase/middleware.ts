@@ -42,11 +42,7 @@ export async function updateSession(request: NextRequest) {
     data: { user: sbUser },
   } = await supabase.auth.getUser();
 
-  const hasDemoCookie =
-    request.cookies.has('undertow-demo-session') ||
-    request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.value);
-
-  const user = sbUser || (hasDemoCookie ? { id: 'usr_demo', email: 'alex@example.com' } : null);
+  const user = sbUser;
 
   const pathname = request.nextUrl.pathname;
 

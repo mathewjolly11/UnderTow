@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { getGeminiApiKey } from '@/services/geminiKeyRotation';
+import { withRetry } from '@/lib/utils/withRetry';
 
 export interface RewrittenCaregiverMessage {
   originalText: string;
@@ -46,11 +47,11 @@ REQUIRED JSON FORMAT:
 }
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' },
-    });
+    }));
 
     if (response.text) {
       const parsed = JSON.parse(response.text);
