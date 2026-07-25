@@ -277,7 +277,7 @@ export default function DashboardPage() {
                     >
                       {session.stress_state} Stress
                     </span>
-                    <span className="text-zinc-500 text-[10px]">
+                    <span suppressHydrationWarning className="text-zinc-500 text-[10px]">
                       {new Date(session.created_at).toLocaleDateString()}
                     </span>
                   </div>
@@ -320,7 +320,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-zinc-400">{rp.summary}</p>
                   <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1">
                     <span>Intensity: {rp.intensity}</span>
-                    <span>{new Date(rp.created_at).toLocaleDateString()}</span>
+                    <span suppressHydrationWarning>{new Date(rp.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
               ))}

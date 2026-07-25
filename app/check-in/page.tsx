@@ -429,7 +429,7 @@ export default function CheckInPage() {
                   >
                     {session.stress_state} Stress
                   </span>
-                  <span className="text-[10px] text-zinc-500">
+                  <span suppressHydrationWarning className="text-[10px] text-zinc-500">
                     {new Date(session.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',

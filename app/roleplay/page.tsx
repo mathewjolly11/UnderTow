@@ -485,7 +485,7 @@ export default function RoleplayPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-sm font-extrabold text-[#14B8A6]">{s.score} PTS</div>
-                  <div className="text-[10px] text-zinc-500">{new Date(s.created_at).toLocaleDateString()}</div>
+                  <div suppressHydrationWarning className="text-[10px] text-zinc-500">{new Date(s.created_at).toLocaleDateString()}</div>
                 </div>
               </div>
             ))}
