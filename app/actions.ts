@@ -173,6 +173,32 @@ export async function updateOnboardingProfileAction(data: {
   return { success: true };
 }
 
+// In-Memory Rate Limiter for Gemini Calls
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS = 10;
+const rateLimits = new Map<string, { count: number; timestamp: number }>();
+
+async function checkRateLimit() {
+  const supabase = await createClientServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  const identifier = user?.id || 'anonymous';
+  
+  const now = Date.now();
+  const record = rateLimits.get(identifier);
+
+  if (!record || (now - record.timestamp) > RATE_LIMIT_WINDOW) {
+    rateLimits.set(identifier, { count: 1, timestamp: now });
+    return true;
+  }
+
+  if (record.count >= MAX_REQUESTS) {
+    return false;
+  }
+
+  record.count += 1;
+  return true;
+}
+
 // Gemini Server Actions
 export async function evaluateStressAction(
   transcript: string,
@@ -181,6 +207,9 @@ export async function evaluateStressAction(
 ) {
   const parsed = evaluateStressSchema.safeParse({ transcript, metrics, userMemory });
   if (!parsed.success) throw new Error('Invalid input');
+
+  const allowed = await checkRateLimit();
+  if (!allowed) throw new Error('Rate limit exceeded for Gemini API calls. Please try again later.');
 
   return evaluateStressWithGemini(transcript, metrics, userMemory);
 }
@@ -192,6 +221,9 @@ export async function generateRoleplayResponseAction(
 ) {
   const parsed = generateRoleplayResponseSchema.safeParse({ scenario, persona, chatHistory });
   if (!parsed.success) throw new Error('Invalid input');
+
+  const allowed = await checkRateLimit();
+  if (!allowed) throw new Error('Rate limit exceeded for Gemini API calls. Please try again later.');
 
   return generateRoleplayResponse(scenario, persona, chatHistory);
 }
@@ -213,6 +245,9 @@ export async function rewriteCaregiverMessageAction(
 ) {
   const parsed = rewriteCaregiverMessageSchema.safeParse({ draftMessage, userStage });
   if (!parsed.success) throw new Error('Invalid input');
+
+  const allowed = await checkRateLimit();
+  if (!allowed) throw new Error('Rate limit exceeded for Gemini API calls. Please try again later.');
 
   return rewriteCaregiverMessageWithGemini(draftMessage, userStage);
 }
