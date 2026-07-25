@@ -7,6 +7,56 @@ import { generateRoleplayResponse, summarizeRoleplaySession, RoleplayMessage } f
 import { rewriteCaregiverMessageWithGemini } from '@/services/geminiCaregiverCoach';
 import { AcousticMetrics } from '@/components/StressMeter';
 import { UserMemory, SafePerson } from '@/types/database';
+import { z } from 'zod';
+
+const saveVoiceSessionSchema = z.object({
+  transcript: z.string().min(1),
+  speechRate: z.number(),
+  averageVolume: z.number(),
+  pauseCount: z.number(),
+  stressState: z.enum(['Calm', 'Mild', 'High', 'Acute']),
+  confidence: z.number(),
+});
+
+const saveRoleplaySessionSchema = z.object({
+  scenario: z.string().min(1),
+  intensity: z.enum(['Low', 'Medium', 'High']),
+  score: z.number(),
+  summary: z.string(),
+});
+
+const updateOnboardingProfileSchema = z.object({
+  name: z.string().min(1),
+  recoveryGoal: z.string(),
+  stage: z.string(),
+  triggers: z.array(z.string()),
+  safePeople: z.array(z.unknown()),
+  groundingMethods: z.array(z.string()),
+  reasonsToRecover: z.array(z.string()),
+});
+
+const evaluateStressSchema = z.object({
+  transcript: z.string(),
+  metrics: z.unknown(),
+  userMemory: z.unknown().optional().nullable(),
+});
+
+const generateRoleplayResponseSchema = z.object({
+  scenario: z.string(),
+  persona: z.enum(['Friend', 'Family', 'Dealer', 'Coworker', 'Custom']),
+  chatHistory: z.array(z.unknown()),
+});
+
+const summarizeRoleplaySessionSchema = z.object({
+  scenario: z.string(),
+  persona: z.string(),
+  chatHistory: z.array(z.unknown()),
+});
+
+const rewriteCaregiverMessageSchema = z.object({
+  draftMessage: z.string(),
+  userStage: z.string().optional(),
+});
 
 // Save Voice Session Action
 export async function saveVoiceSessionAction(data: {
@@ -17,6 +67,9 @@ export async function saveVoiceSessionAction(data: {
   stressState: 'Calm' | 'Mild' | 'High' | 'Acute';
   confidence: number;
 }) {
+  const parsed = saveVoiceSessionSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: 'Invalid input' };
+
   const supabase = await createClientServer();
   const {
     data: { user },
@@ -48,6 +101,9 @@ export async function saveRoleplaySessionAction(data: {
   score: number;
   summary: string;
 }) {
+  const parsed = saveRoleplaySessionSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: 'Invalid input' };
+
   const supabase = await createClientServer();
   const {
     data: { user },
@@ -80,6 +136,9 @@ export async function updateOnboardingProfileAction(data: {
   groundingMethods: string[];
   reasonsToRecover: string[];
 }) {
+  const parsed = updateOnboardingProfileSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: 'Invalid input' };
+
   const supabase = await createClientServer();
   const {
     data: { user },
@@ -120,6 +179,9 @@ export async function evaluateStressAction(
   metrics: AcousticMetrics,
   userMemory?: UserMemory | null
 ) {
+  const parsed = evaluateStressSchema.safeParse({ transcript, metrics, userMemory });
+  if (!parsed.success) throw new Error('Invalid input');
+
   return evaluateStressWithGemini(transcript, metrics, userMemory);
 }
 
@@ -128,6 +190,9 @@ export async function generateRoleplayResponseAction(
   persona: 'Friend' | 'Family' | 'Dealer' | 'Coworker' | 'Custom',
   chatHistory: RoleplayMessage[]
 ) {
+  const parsed = generateRoleplayResponseSchema.safeParse({ scenario, persona, chatHistory });
+  if (!parsed.success) throw new Error('Invalid input');
+
   return generateRoleplayResponse(scenario, persona, chatHistory);
 }
 
@@ -136,6 +201,9 @@ export async function summarizeRoleplaySessionAction(
   persona: string,
   chatHistory: RoleplayMessage[]
 ) {
+  const parsed = summarizeRoleplaySessionSchema.safeParse({ scenario, persona, chatHistory });
+  if (!parsed.success) throw new Error('Invalid input');
+
   return summarizeRoleplaySession(scenario, persona, chatHistory);
 }
 
@@ -143,6 +211,9 @@ export async function rewriteCaregiverMessageAction(
   draftMessage: string,
   userStage: string = 'Active Maintenance'
 ) {
+  const parsed = rewriteCaregiverMessageSchema.safeParse({ draftMessage, userStage });
+  if (!parsed.success) throw new Error('Invalid input');
+
   return rewriteCaregiverMessageWithGemini(draftMessage, userStage);
 }
 
