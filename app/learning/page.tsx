@@ -3,7 +3,7 @@
 import { Sidebar } from '@/components/Sidebar';
 import { BookOpen, Clock, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { createClientBrowser } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import ReactMarkdown from 'react-markdown';
 
 interface LearningModule {
@@ -18,7 +18,6 @@ export default function LearningPage() {
   const [modules, setModules] = useState<LearningModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState<LearningModule | null>(null);
-  const supabase = createClientBrowser();
 
   useEffect(() => {
     async function fetchModules() {
@@ -27,7 +26,7 @@ export default function LearningPage() {
       setLoading(false);
     }
     fetchModules();
-  }, [supabase]);
+  }, []);
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] bg-[#09090B]">
