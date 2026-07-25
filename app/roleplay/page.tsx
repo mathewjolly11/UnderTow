@@ -4,29 +4,20 @@ import { useState, useRef, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
-import {
-  generateRoleplayResponse,
-  summarizeRoleplaySession,
-  RoleplayMessage,
-  RoleplaySummary,
-} from '@/services/geminiRoleplayService';
+import type { RoleplayMessage, RoleplaySummary } from '@/services/geminiRoleplayService';
+import { generateRoleplayResponseAction, summarizeRoleplaySessionAction } from '@/app/actions';
 import { supabase } from '@/lib/supabase/client';
 import { MOCK_ROLEPLAY_SESSIONS } from '@/lib/mockData';
-import { RoleplaySession } from '@/types/database';
+import { RoleplaySession, IWindowSpeech } from '@/types/database';
 import {
   Brain,
   Mic,
   Square,
-  Volume2,
   Sparkles,
   Award,
   CheckCircle2,
-  AlertCircle,
   Play,
   RotateCcw,
-  Users,
-  User,
-  Flame,
   MessageSquare,
 } from 'lucide-react';
 
@@ -34,7 +25,7 @@ type PersonaType = 'Friend' | 'Family' | 'Dealer' | 'Coworker' | 'Custom';
 
 export default function RoleplayPage() {
   const { user } = useAuth();
-  const { speak, stop: stopSpeech, isSpeaking } = useSpeechSynthesis();
+  const { speak, stop: stopSpeech } = useSpeechSynthesis();
 
   // Persona Selection State
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>('Friend');
@@ -52,7 +43,7 @@ export default function RoleplayPage() {
   const [sessionSummary, setSessionSummary] = useState<RoleplaySummary | null>(null);
   const [pastSessions, setPastSessions] = useState<RoleplaySession[]>(MOCK_ROLEPLAY_SESSIONS);
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Fetch past roleplay sessions
   useEffect(() => {
@@ -125,7 +116,7 @@ export default function RoleplayPage() {
     setMessages([]);
     setIsAiThinking(true);
 
-    const firstAiText = await generateRoleplayResponse(currentScenarioStr, selectedPersona, []);
+    const firstAiText = await generateRoleplayResponseAction(currentScenarioStr, selectedPersona, []);
     setIsAiThinking(false);
 
     const initialMessages: RoleplayMessage[] = [{ sender: 'partner', text: firstAiText }];
@@ -141,8 +132,8 @@ export default function RoleplayPage() {
     setTranscript('');
     setInterimText('');
 
-    const SpeechRecognitionClass =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const win = window as unknown as IWindowSpeech;
+    const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (SpeechRecognitionClass) {
       const recognition = new SpeechRecognitionClass();
@@ -190,7 +181,7 @@ export default function RoleplayPage() {
 
     // Generate AI Partner Response
     setIsAiThinking(true);
-    const partnerReply = await generateRoleplayResponse(currentScenarioStr, selectedPersona, newHistory);
+    const partnerReply = await generateRoleplayResponseAction(currentScenarioStr, selectedPersona, newHistory);
     setIsAiThinking(false);
 
     const updatedHistory: RoleplayMessage[] = [...newHistory, { sender: 'partner', text: partnerReply }];
@@ -208,7 +199,7 @@ export default function RoleplayPage() {
 
     if (messages.length > 0) {
       setIsAiThinking(true);
-      const summaryResult = await summarizeRoleplaySession(currentScenarioStr, selectedPersona, messages);
+      const summaryResult = await summarizeRoleplaySessionAction(currentScenarioStr, selectedPersona, messages);
       setSessionSummary(summaryResult);
       setIsAiThinking(false);
 

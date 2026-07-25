@@ -1,7 +1,7 @@
 'use client';
 
 import { Sidebar } from '@/components/Sidebar';
-import { BookOpen, CheckCircle, Clock } from 'lucide-react';
+import { BookOpen, Clock } from 'lucide-react';
 
 export default function LearningPage() {
   const lessons = [

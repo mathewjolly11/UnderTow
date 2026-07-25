@@ -90,9 +90,10 @@ REQUIRED JSON FORMAT:
       };
     }
     throw new Error('Empty text from Gemini response');
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorObj = err as { status?: number; message?: string };
     console.warn('Gemini API evaluation fallback:', err);
-    if (err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota')) {
+    if (errorObj?.status === 429 || errorObj?.message?.includes('429') || errorObj?.message?.includes('quota')) {
       rotateGeminiApiKey();
     }
     return {

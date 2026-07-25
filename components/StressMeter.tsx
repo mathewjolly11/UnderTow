@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, Zap, AlertTriangle, ShieldCheck, HeartPulse } from 'lucide-react';
+import { ShieldCheck, HeartPulse } from 'lucide-react';
 
 export interface AcousticMetrics {
   speechRate: number; // WPM

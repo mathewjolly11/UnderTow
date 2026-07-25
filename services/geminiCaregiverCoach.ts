@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiApiKey } from '@/services/geminiKeyRotation';
 
 export interface RewrittenCaregiverMessage {
   originalText: string;
@@ -10,7 +11,7 @@ export async function rewriteCaregiverMessageWithGemini(
   draftMessage: string,
   userStage: string = 'Active Maintenance'
 ): Promise<RewrittenCaregiverMessage> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
     // Fallback if API key is unconfigured

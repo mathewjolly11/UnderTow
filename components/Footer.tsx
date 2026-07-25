@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Activity, Shield, Heart, Lock, Globe } from 'lucide-react';
+import { Activity, Shield, Heart, Lock } from 'lucide-react';
 
 export function Footer() {
   return (

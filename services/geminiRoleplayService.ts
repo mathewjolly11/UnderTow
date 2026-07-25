@@ -22,7 +22,6 @@ export async function generateRoleplayResponse(
 
   if (!apiKey) {
     // Fallback response generator if API key is not configured
-    const lastUserMsg = chatHistory[chatHistory.length - 1]?.text || '';
     if (persona === 'Dealer' || persona === 'Friend') {
       return "Come on, just one drink or hit won't hurt! Everyone else is doing it right now.";
     } else if (persona === 'Coworker') {
@@ -69,9 +68,10 @@ INSTRUCTIONS:
     });
 
     return response.text?.trim() || "I hear your refusal, but I really think you should join us for just one round.";
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorObj = err as { status?: number; message?: string };
     console.warn('Gemini roleplay partner fallback:', err);
-    if (err?.status === 429 || err?.status === 401 || err?.message?.includes('429') || err?.message?.includes('401') || err?.message?.includes('UNAUTHENTICATED')) {
+    if (errorObj?.status === 429 || errorObj?.status === 401 || errorObj?.message?.includes('429') || errorObj?.message?.includes('401') || errorObj?.message?.includes('UNAUTHENTICATED')) {
       rotateGeminiApiKey();
     }
     const dynamicFallbacks = [

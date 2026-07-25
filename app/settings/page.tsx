@@ -2,7 +2,7 @@
 
 import { Sidebar } from '@/components/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Settings, Shield, User, Heart, Key } from 'lucide-react';
+import { User, Heart } from 'lucide-react';
 import { MOCK_PROFILE, MOCK_MEMORY } from '@/lib/mockData';
 
 export default function SettingsPage() {

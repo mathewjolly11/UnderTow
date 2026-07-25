@@ -4,24 +4,18 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
-import { MOCK_STRESS_TRENDS, MOCK_PROFILE } from '@/lib/mockData';
+import { MOCK_STRESS_TRENDS } from '@/lib/mockData';
+import type { RewrittenCaregiverMessage } from '@/services/geminiCaregiverCoach';
+import { rewriteCaregiverMessageAction } from '@/app/actions';
 import {
-  rewriteCaregiverMessageWithGemini,
-  RewrittenCaregiverMessage,
-} from '@/services/geminiCaregiverCoach';
-import {
-  Users,
   ShieldCheck,
   Flame,
   Activity,
   Brain,
   Sparkles,
   Send,
-  MessageSquare,
   Lock,
   History,
-  TrendingUp,
-  Heart,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -86,7 +80,7 @@ export default function CaregiverPage() {
     if (!draftMessage.trim()) return;
 
     setIsCoachThinking(true);
-    const result = await rewriteCaregiverMessageWithGemini(draftMessage, profile?.stage || 'Active Maintenance');
+    const result = await rewriteCaregiverMessageAction(draftMessage, profile?.stage || 'Active Maintenance');
     setCoachResult(result);
     setIsCoachThinking(false);
   };
@@ -245,7 +239,7 @@ export default function CaregiverPage() {
                 <Sparkles className="h-4 w-4" /> AI Reframed Version (Recommended)
               </div>
               <p className="text-xs text-white leading-relaxed font-medium bg-[#09090B] p-3.5 rounded-xl border border-[#27272A]">
-                "{coachResult.rewrittenText}"
+                &quot;{coachResult.rewrittenText}&quot;
               </p>
               <p className="text-[11px] text-zinc-400 italic">Why this helps: {coachResult.explanation}</p>
 
@@ -267,8 +261,8 @@ export default function CaregiverPage() {
           <div className="space-y-3">
             {sentMessages.map((msg, idx) => (
               <div key={idx} className="p-4 rounded-2xl bg-[#18181B] border border-[#27272A] space-y-2">
-                <div className="text-[11px] text-zinc-500 line-through">Draft: "{msg.originalText}"</div>
-                <div className="text-xs text-white font-medium text-emerald-400">Sent: "{msg.rewrittenText}"</div>
+                <div className="text-[11px] text-zinc-500 line-through">Draft: &quot;{msg.originalText}&quot;</div>
+                <div className="text-xs text-white font-medium text-emerald-400">Sent: &quot;{msg.rewrittenText}&quot;</div>
               </div>
             ))}
           </div>

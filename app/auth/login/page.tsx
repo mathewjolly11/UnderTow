@@ -19,7 +19,7 @@ export default function LoginPage() {
   // If user is already authenticated, redirect immediately away from login form
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [user, router]);
 
@@ -37,16 +37,22 @@ export default function LoginPage() {
       if (signInError) {
         // Fallback for hackathon MVP if DB credentials not yet linked
         if (signInError.message.includes('FetchError') || signInError.message.includes('invalid_credentials')) {
-          router.push('/dashboard');
+          document.cookie = 'undertow-demo-session=true; path=/';
+          window.location.href = '/dashboard';
           return;
         }
         throw signInError;
       }
 
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in. Redirecting to demo mode...');
-      setTimeout(() => router.push('/dashboard'), 1500);
+      document.cookie = 'undertow-demo-session=true; path=/';
+      window.location.href = '/dashboard';
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string };
+      setError(errorObj.message || 'Failed to sign in. Redirecting to demo mode...');
+      document.cookie = 'undertow-demo-session=true; path=/';
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1500);
     } finally {
       setLoading(false);
     }
@@ -66,8 +72,9 @@ export default function LoginPage() {
       });
       if (resetErr) throw resetErr;
       setForgotSent(true);
-    } catch (err: any) {
-      setError(err.message || 'Error requesting password reset.');
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string };
+      setError(errorObj.message || 'Error requesting password reset.');
     } finally {
       setLoading(false);
     }
@@ -188,7 +195,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-zinc-400">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/auth/signup" className="text-[#6366F1] font-semibold hover:underline">
             Create One Now
           </Link>

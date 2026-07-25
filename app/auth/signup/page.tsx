@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Activity, Mail, Lock, User, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Activity, Mail, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function SignupPage() {
   // If user is already authenticated, redirect immediately to dashboard
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [user, router]);
 
@@ -30,7 +30,7 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -43,16 +43,22 @@ export default function SignupPage() {
 
       if (signUpError) {
         if (signUpError.message.includes('FetchError') || signUpError.message.includes('invalid')) {
-          router.push('/dashboard');
+          document.cookie = 'undertow-demo-session=true; path=/';
+          window.location.href = '/onboarding';
           return;
         }
         throw signUpError;
       }
 
-      router.push('/onboarding');
-    } catch (err: any) {
-      setError(err.message || 'Signup initialization error. Proceeding in demo mode...');
-      setTimeout(() => router.push('/onboarding'), 1500);
+      document.cookie = 'undertow-demo-session=true; path=/';
+      window.location.href = '/onboarding';
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string };
+      setError(errorObj.message || 'Signup initialization error. Proceeding in demo mode...');
+      document.cookie = 'undertow-demo-session=true; path=/';
+      setTimeout(() => {
+        window.location.href = '/onboarding';
+      }, 1500);
     } finally {
       setLoading(false);
     }

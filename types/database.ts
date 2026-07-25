@@ -11,11 +11,17 @@ export interface Profile {
   updated_at: string;
 }
 
+export interface SafePerson {
+  name: string;
+  relationship: string;
+  phone: string;
+}
+
 export interface UserMemory {
   id: string;
   user_id: string;
   trigger: string[];
-  safe_people: { name: string; relationship: string; phone: string }[];
+  safe_people: SafePerson[];
   grounding_methods: string[];
   emergency_script: string;
   reasons_to_recover: string[];
@@ -60,3 +66,9 @@ export interface LearningHistory {
   completed: boolean;
   created_at: string;
 }
+
+export interface IWindowSpeech extends Window {
+  SpeechRecognition?: new () => SpeechRecognition;
+  webkitSpeechRecognition?: new () => SpeechRecognition;
+}
+

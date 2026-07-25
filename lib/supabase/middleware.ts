@@ -1,8 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/check-in',
+  '/roleplay',
+  '/caregiver',
+  '/settings',
+  '/onboarding',
+  '/learning',
+];
+
 export async function updateSession(request: NextRequest) {
-  const supabaseResponse = NextResponse.next({
+  let supabaseResponse = NextResponse.next({
     request,
   });
 
@@ -16,8 +26,11 @@ export async function updateSession(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) =>
-          request.cookies.set(name, value)
+          request.cookies.set({ name, value, ...options })
         );
+        supabaseResponse = NextResponse.next({
+          request,
+        });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         );
@@ -25,8 +38,33 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Simple pass-through for client-side AuthContext session management
-  await supabase.auth.getUser();
+  const {
+    data: { user: sbUser },
+  } = await supabase.auth.getUser();
+
+  const hasDemoCookie =
+    request.cookies.has('undertow-demo-session') ||
+    request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.value);
+
+  const user = sbUser || (hasDemoCookie ? { id: 'usr_demo', email: 'alex@example.com' } : null);
+
+  const pathname = request.nextUrl.pathname;
+
+  const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isAuthRoute = pathname === '/auth/login' || pathname === '/auth/signup';
+
+  if (!user && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/login';
+    return NextResponse.redirect(url);
+  }
+
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }
+

@@ -6,25 +6,16 @@ import {
   PhoneCall,
   MessageSquare,
   X,
-  Heart,
   Wind,
   CheckCircle2,
   AlertTriangle,
-  Play,
-  RotateCcw,
 } from 'lucide-react';
 import { UserMemory } from '@/types/database';
-
-interface CrisisOverlayProps {
-  userMemory?: UserMemory | null;
-  onClose: () => void;
-}
 
 export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory | null; onClose: () => void }) {
   // Breathing Timer State (4 seconds inhale, 7 seconds hold, 8 seconds exhale)
   const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale'>('Inhale');
   const [breathCount, setBreathCount] = useState(4);
-  const [isBreathingActive, setIsBreathingActive] = useState(true);
 
   const safeContact = userMemory?.safe_people?.[0] || {
     name: 'Sarah Rivera',
@@ -40,8 +31,6 @@ export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory
 
   // 4-7-8 Breathing Loop Effect
   useEffect(() => {
-    if (!isBreathingActive) return;
-
     const interval = setInterval(() => {
       setBreathCount((prev) => {
         if (prev > 1) return prev - 1;
@@ -61,7 +50,7 @@ export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [breathPhase, isBreathingActive]);
+  }, [breathPhase]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fadeIn overflow-y-auto">

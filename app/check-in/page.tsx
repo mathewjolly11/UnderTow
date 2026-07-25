@@ -6,23 +6,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAudioVisualizer } from '@/hooks/useAudioVisualizer';
 import { supabase } from '@/lib/supabase/client';
 import { MOCK_VOICE_SESSIONS } from '@/lib/mockData';
-import { VoiceSession } from '@/types/database';
 import { StressMeter, AcousticMetrics } from '@/components/StressMeter';
 import { analyzeVoiceAcoustics } from '@/services/voiceAnalysisService';
-import { evaluateStressWithGemini, GeminiStressEvaluation } from '@/services/geminiService';
+import type { GeminiStressEvaluation } from '@/services/geminiService';
+import { evaluateStressAction } from '@/app/actions';
 import { GeminiAnalysisResult } from '@/components/GeminiAnalysisResult';
 import { CrisisOverlay } from '@/components/CrisisOverlay';
-import { UserMemory } from '@/types/database';
+import { VoiceSession, UserMemory, IWindowSpeech } from '@/types/database';
 import {
   Mic,
   Square,
   Clock,
-  Activity,
   ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  Volume2,
-  RotateCcw,
   Sparkles,
   History,
 } from 'lucide-react';
@@ -44,7 +39,7 @@ export default function CheckInPage() {
   // Speech Recognition Ref
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastSpeechTimeRef = useRef<number>(Date.now());
+  const lastSpeechTimeRef = useRef<number>(0);
 
   // Fetch past sessions from Supabase
   useEffect(() => {
@@ -71,7 +66,6 @@ export default function CheckInPage() {
   // Timer effect
   useEffect(() => {
     if (isRecording) {
-      setTimerSeconds(0);
       timerRef.current = setInterval(() => {
         setTimerSeconds((prev) => prev + 1);
       }, 1000);
@@ -87,13 +81,14 @@ export default function CheckInPage() {
   // Speech Recognition setup
   const startRecording = () => {
     setIsRecording(true);
+    setTimerSeconds(0);
     setLiveTranscript('');
     setInterimText('');
     setPauseCount(0);
     lastSpeechTimeRef.current = Date.now();
 
-    const SpeechRecognitionClass =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const win = window as unknown as IWindowSpeech;
+    const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (SpeechRecognitionClass) {
       const recognition = new SpeechRecognitionClass();
@@ -126,8 +121,10 @@ export default function CheckInPage() {
         setInterimText(interimStr);
       };
 
-      recognition.onerror = (err: any) => {
-        console.warn('Speech recognition notice:', err);
+      recognition.onerror = (err: unknown) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Speech recognition notice:', err);
+        }
       };
 
       recognition.onend = () => {
@@ -180,9 +177,9 @@ export default function CheckInPage() {
       if (mem) setUserMemoryState(mem);
     }
 
-    // 3. Evaluate with Gemini API
+    // 3. Evaluate with Gemini API via Server Action
     setEvaluatingAI(true);
-    const geminiEval = await evaluateStressWithGemini(fullText, metrics, memoryData);
+    const geminiEval = await evaluateStressAction(fullText, metrics, memoryData);
     setGeminiResult(geminiEval);
     setEvaluatingAI(false);
 

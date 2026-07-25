@@ -9,14 +9,8 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  Heart,
-  Shield,
-  Zap,
-  User,
-  Target,
   Plus,
   X,
-  Phone,
 } from 'lucide-react';
 
 export default function OnboardingPage() {

@@ -2,6 +2,11 @@
 
 import { createClientServer } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { evaluateStressWithGemini } from '@/services/geminiService';
+import { generateRoleplayResponse, summarizeRoleplaySession, RoleplayMessage } from '@/services/geminiRoleplayService';
+import { rewriteCaregiverMessageWithGemini } from '@/services/geminiCaregiverCoach';
+import { AcousticMetrics } from '@/components/StressMeter';
+import { UserMemory, SafePerson } from '@/types/database';
 
 // Save Voice Session Action
 export async function saveVoiceSessionAction(data: {
@@ -71,7 +76,7 @@ export async function updateOnboardingProfileAction(data: {
   recoveryGoal: string;
   stage: string;
   triggers: string[];
-  safePeople: any[];
+  safePeople: SafePerson[];
   groundingMethods: string[];
   reasonsToRecover: string[];
 }) {
@@ -108,3 +113,36 @@ export async function updateOnboardingProfileAction(data: {
   revalidatePath('/settings');
   return { success: true };
 }
+
+// Gemini Server Actions
+export async function evaluateStressAction(
+  transcript: string,
+  metrics: AcousticMetrics,
+  userMemory?: UserMemory | null
+) {
+  return evaluateStressWithGemini(transcript, metrics, userMemory);
+}
+
+export async function generateRoleplayResponseAction(
+  scenario: string,
+  persona: 'Friend' | 'Family' | 'Dealer' | 'Coworker' | 'Custom',
+  chatHistory: RoleplayMessage[]
+) {
+  return generateRoleplayResponse(scenario, persona, chatHistory);
+}
+
+export async function summarizeRoleplaySessionAction(
+  scenario: string,
+  persona: string,
+  chatHistory: RoleplayMessage[]
+) {
+  return summarizeRoleplaySession(scenario, persona, chatHistory);
+}
+
+export async function rewriteCaregiverMessageAction(
+  draftMessage: string,
+  userStage: string = 'Active Maintenance'
+) {
+  return rewriteCaregiverMessageWithGemini(draftMessage, userStage);
+}
+

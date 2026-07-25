@@ -2,6 +2,28 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+export function calculateAudioMetrics(dataArray: Uint8Array) {
+  let sum = 0;
+  for (let i = 0; i < dataArray.length; i++) {
+    sum += dataArray[i];
+  }
+  const avgVolume = dataArray.length > 0 ? Math.min(100, Math.round(sum / dataArray.length)) : 0;
+
+  const rawBars = Array.from(dataArray.slice(0, 30)).map((val) =>
+    Math.max(8, Math.round((val / 255) * 80))
+  );
+
+  const waveformBars =
+    rawBars.length < 30
+      ? [...rawBars, ...Array(30 - rawBars.length).fill(10)]
+      : rawBars.slice(0, 30);
+
+  return {
+    volume: avgVolume,
+    waveform: waveformBars,
+  };
+}
+
 export function useAudioVisualizer(isRecording: boolean) {
   const [audioMetrics, setAudioMetrics] = useState({
     volume: 0,
@@ -48,24 +70,7 @@ export function useAudioVisualizer(isRecording: boolean) {
 
         const renderWaveform = () => {
           analyser.getByteFrequencyData(dataArray);
-
-          // Calculate average volume
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          const avgVolume = Math.min(100, Math.round(sum / dataArray.length));
-
-          // Slice waveform bars
-          const waveformBars = Array.from(dataArray.slice(0, 30)).map((val) =>
-            Math.max(8, Math.round((val / 255) * 80))
-          );
-
-          setAudioMetrics({
-            volume: avgVolume,
-            waveform: waveformBars.length < 30 ? [...waveformBars, ...Array(30 - waveformBars.length).fill(10)] : waveformBars,
-          });
-
+          setAudioMetrics(calculateAudioMetrics(dataArray));
           animFrameRef.current = requestAnimationFrame(renderWaveform);
         };
 

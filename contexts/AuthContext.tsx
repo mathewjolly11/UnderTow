@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data } = await supabase.auth.getSession();
         setSession(data.session);
         const currentUser = data.session?.user ?? null;
-        setUser(currentUser);
+        const hasDemoCookie = typeof document !== 'undefined' && document.cookie.includes('undertow-demo-session=true');
 
         if (currentUser) {
           const googleName =
@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             currentUser.email?.split('@')[0] ||
             'User';
 
+          setUser(currentUser);
           setProfile({
             id: currentUser.id,
             name: googleName,
@@ -57,11 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
+        } else if (hasDemoCookie) {
+          setUser({ id: 'usr_demo_123', email: 'alex@example.com' } as User);
+          setProfile(MOCK_PROFILE);
         } else {
+          setUser(null);
           setProfile(null);
         }
       } catch (err) {
-        console.warn('Supabase auth check:', err);
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Supabase auth check:', err);
+        }
       } finally {
         setLoading(false);
       }
@@ -74,9 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, newSession) => {
         setSession(newSession);
         const currentUser = newSession?.user ?? null;
-        setUser(currentUser);
+        const hasDemoCookie = typeof document !== 'undefined' && document.cookie.includes('undertow-demo-session=true');
 
         if (currentUser) {
+          setUser(currentUser);
           const googleName =
             currentUser.user_metadata?.full_name ||
             currentUser.user_metadata?.name ||
@@ -92,7 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
+        } else if (hasDemoCookie) {
+          setUser({ id: 'usr_demo_123', email: 'alex@example.com' } as User);
+          setProfile(MOCK_PROFILE);
         } else {
+          setUser(null);
           setProfile(null);
         }
         setLoading(false);
@@ -115,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    document.cookie = 'undertow-demo-session=true; path=/';
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -123,20 +136,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
       if (error) {
-        console.warn('OAuth redirect notice, proceeding in demo session:', error.message);
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('OAuth redirect notice, proceeding in demo session:', error.message);
+        }
         window.location.href = '/dashboard';
       }
     } catch (err) {
-      console.warn('Redirecting to dashboard:', err);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Redirecting to dashboard:', err);
+      }
       window.location.href = '/dashboard';
     }
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    document.cookie = 'undertow-demo-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     setUser(null);
     setSession(null);
-    setProfile(MOCK_PROFILE);
+    setProfile(null);
+    window.location.href = '/auth/login';
   };
 
   return (

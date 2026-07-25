@@ -97,7 +97,7 @@ export default function DashboardPage() {
               <Flame className="h-4 w-4" /> 42 Day Recovery Streak
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, {displayName.split(' ')[0]}
+              Welcome back, {displayName?.split(' ')[0] || 'Alex'}
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400 mt-1">
               Goal: {userGoal}

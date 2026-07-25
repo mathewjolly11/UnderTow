@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Brain, AlertTriangle, ShieldCheck, HeartPulse } from 'lucide-react';
+import { Sparkles, Brain, HeartPulse } from 'lucide-react';
 import { GeminiStressEvaluation } from '@/services/geminiService';
 
 export function GeminiAnalysisResult({ evaluation }: { evaluation: GeminiStressEvaluation }) {

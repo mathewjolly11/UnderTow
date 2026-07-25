@@ -6,7 +6,7 @@
 let currentKeyIndex = 0;
 
 export function getGeminiApiKey(): string | null {
-  const rawPool = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+  const rawPool = process.env.GEMINI_API_KEY || '';
   if (!rawPool) return null;
 
   // Split by comma in case multiple keys are provided: "key1,key2,key3"
@@ -20,7 +20,7 @@ export function getGeminiApiKey(): string | null {
 }
 
 export function rotateGeminiApiKey(): string | null {
-  const rawPool = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+  const rawPool = process.env.GEMINI_API_KEY || '';
   if (!rawPool) return null;
 
   const keys = rawPool.split(',').map((k) => k.trim()).filter(Boolean);
