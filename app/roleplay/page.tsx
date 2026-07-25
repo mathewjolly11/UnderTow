@@ -72,6 +72,7 @@ export default function RoleplayPage() {
     if (typeof window !== 'undefined') {
       const win = window as unknown as IWindowSpeech;
       if (!win.SpeechRecognition && !win.webkitSpeechRecognition) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSupported(false);
       }
     }
@@ -307,6 +308,7 @@ export default function RoleplayPage() {
 
             <div className="pt-2">
               <button
+                type="button"
                 onClick={startSession}
                 className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-sm font-extrabold text-black shadow-xl shadow-[#14B8A6]/25 hover:opacity-95 transition-all flex items-center gap-2"
               >
@@ -328,6 +330,7 @@ export default function RoleplayPage() {
                 </span>
               </div>
               <button
+                type="button"
                 onClick={endSession}
                 className="px-4 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all"
               >
@@ -377,6 +380,7 @@ export default function RoleplayPage() {
               <div className="flex items-center gap-3">
                 {!isSupported ? (
                   <button
+                    type="button"
                     disabled
                     className="px-8 py-3.5 rounded-2xl bg-[#18181B] border border-[#27272A] text-xs font-bold text-zinc-500 cursor-not-allowed flex items-center gap-2"
                   >
@@ -384,6 +388,7 @@ export default function RoleplayPage() {
                   </button>
                 ) : !isListening ? (
                   <button
+                    type="button"
                     onClick={startVoiceInput}
                     disabled={isAiThinking}
                     className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-xs font-bold text-white shadow-xl shadow-[#6366F1]/25 hover:opacity-95 transition-all flex items-center gap-2"
@@ -392,6 +397,7 @@ export default function RoleplayPage() {
                   </button>
                 ) : (
                   <button
+                    type="button"
                     onClick={stopVoiceInputAndSend}
                     className="px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-xl shadow-emerald-600/30 transition-all flex items-center gap-2 animate-pulse"
                   >
@@ -452,6 +458,7 @@ export default function RoleplayPage() {
 
             <div className="pt-2 flex justify-center">
               <button
+                type="button"
                 onClick={() => setSessionSummary(null)}
                 className="px-6 py-2.5 rounded-xl bg-[#27272A] hover:bg-zinc-700 text-xs font-semibold text-white flex items-center gap-2"
               >

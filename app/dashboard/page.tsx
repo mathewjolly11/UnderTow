@@ -238,7 +238,7 @@ export default function DashboardPage() {
                     {dbUserMemory.safe_people?.[0]?.relationship || MOCK_MEMORY.safe_people[0].relationship}
                   </div>
                 </div>
-                <button className="px-3 py-1.5 rounded-lg bg-[#14B8A6]/20 border border-[#14B8A6]/30 text-xs font-medium text-[#14B8A6] hover:bg-[#14B8A6]/30">
+                <button type="button" className="px-3 py-1.5 rounded-lg bg-[#14B8A6]/20 border border-[#14B8A6]/30 text-xs font-medium text-[#14B8A6] hover:bg-[#14B8A6]/30">
                   Call Now
                 </button>
               </div>

@@ -69,6 +69,7 @@ export function Navbar() {
                 <span className="text-xs font-semibold text-white">{profile?.name || user.email?.split('@')[0]}</span>
               </div>
               <button
+                type="button"
                 onClick={() => signOut()}
                 className="px-3 py-1.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-medium transition-all"
               >
@@ -95,6 +96,7 @@ export function Navbar() {
 
         {/* Mobile Menu Button */}
         <button
+          type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800"
           aria-label="Toggle Navigation Menu"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ShieldAlert,
   PhoneCall,
@@ -29,6 +29,57 @@ export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory
 
   const groundingMethod = userMemory?.grounding_methods?.[0] || '5-4-3-2-1 Sensory Focus Scan';
 
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Focus Trap and Escape Key Handler
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        if (!modalRef.current) return;
+        const focusableElements = modalRef.current.querySelectorAll(
+          'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
+        );
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    if (modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll('button, a[href]');
+      if (focusableElements.length > 0) {
+        (focusableElements[0] as HTMLElement).focus();
+      }
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previousFocus) {
+        previousFocus.focus();
+      }
+    };
+  }, [onClose]);
+
   // 4-7-8 Breathing Loop Effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -53,7 +104,13 @@ export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory
   }, [breathPhase]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fadeIn overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fadeIn overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crisis-overlay-title"
+      ref={modalRef}
+    >
       <div className="w-full max-w-2xl bg-[#09090B] border-2 border-red-500/50 rounded-3xl p-6 sm:p-8 space-y-6 text-left relative shadow-[0_0_80px_rgba(239,68,68,0.35)] my-auto">
         {/* Top Header & Dismiss Button */}
         <div className="flex items-center justify-between border-b border-red-500/30 pb-4">
@@ -65,10 +122,11 @@ export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-red-400">
                 Acute Crisis Intercept Triggered
               </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white">Emergency Safety Grounding</h2>
+              <h2 id="crisis-overlay-title" className="text-xl sm:text-2xl font-black text-white">Emergency Safety Grounding</h2>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 rounded-full bg-[#18181B] hover:bg-zinc-800 text-zinc-400 hover:text-white border border-[#27272A] transition-all"
             aria-label="Close Overlay"

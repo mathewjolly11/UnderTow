@@ -244,6 +244,7 @@ export default function CaregiverPage() {
               <p className="text-[11px] text-zinc-400 italic">Why this helps: {coachResult.explanation}</p>
 
               <button
+                type="button"
                 onClick={handleSendRewritten}
                 className="px-5 py-2 rounded-xl bg-[#14B8A6] text-xs font-bold text-black shadow-md hover:opacity-90 transition-all flex items-center gap-1.5"
               >

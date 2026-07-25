@@ -84,6 +84,7 @@ export default function CheckInPage() {
     if (typeof window !== 'undefined') {
       const win = window as unknown as IWindowSpeech;
       if (!win.SpeechRecognition && !win.webkitSpeechRecognition) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSupported(false);
       }
     }
@@ -351,6 +352,7 @@ export default function CheckInPage() {
           <div className="pt-2 flex items-center gap-4">
             {!isSupported ? (
               <button
+                type="button"
                 disabled
                 className="px-8 py-3.5 rounded-2xl bg-[#18181B] border border-[#27272A] text-sm font-bold text-zinc-500 cursor-not-allowed flex items-center gap-2"
               >
@@ -358,6 +360,7 @@ export default function CheckInPage() {
               </button>
             ) : !isRecording ? (
               <button
+                type="button"
                 onClick={startRecording}
                 className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-sm font-bold text-white shadow-xl shadow-[#6366F1]/25 hover:opacity-95 hover:scale-[1.02] transition-all flex items-center gap-2"
               >
@@ -365,6 +368,7 @@ export default function CheckInPage() {
               </button>
             ) : (
               <button
+                type="button"
                 onClick={stopRecording}
                 className="px-8 py-3.5 rounded-2xl bg-red-500 hover:bg-red-600 text-sm font-bold text-white shadow-xl shadow-red-500/30 transition-all flex items-center gap-2"
               >
