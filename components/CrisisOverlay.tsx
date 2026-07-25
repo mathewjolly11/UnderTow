@@ -118,7 +118,7 @@ export function CrisisOverlay({ userMemory, onClose }: { userMemory?: UserMemory
         <div className="space-y-3">
           <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Personal Anchor Script</span>
           <div className="p-4 rounded-2xl bg-[#18181B] border border-[#27272A] space-y-2">
-            <p className="text-xs text-zinc-200 leading-relaxed italic font-serif">"{emergencyScript}"</p>
+            <p className="text-xs text-zinc-200 leading-relaxed italic font-serif">&quot;{emergencyScript}&quot;</p>
             <div className="text-[11px] text-[#14B8A6] font-semibold flex items-center gap-1.5 pt-1">
               <CheckCircle2 className="h-3.5 w-3.5" /> Recommended technique: {groundingMethod}
             </div>

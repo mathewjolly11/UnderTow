@@ -1,4 +1,4 @@
-# Undertow SQL Schema & RLS Setup
+-- Undertow SQL Schema & RLS Setup
 
 -- Execute this script in your Supabase SQL Editor:
 

@@ -150,7 +150,7 @@ export default function RoleplayPage() {
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         let finalStr = '';
         let interimStr = '';
 
@@ -366,9 +366,9 @@ export default function RoleplayPage() {
             <div className="flex flex-col items-center gap-4 pt-2">
               <div className="text-xs text-zinc-400 min-h-[20px] text-center italic">
                 {transcript || interimText ? (
-                  <span>"{transcript} {interimText}"</span>
+                  <span>&quot;{transcript} {interimText}&quot;</span>
                 ) : (
-                  <span>Press "Speak Response" to state your refusal aloud</span>
+                  <span>Press &quot;Speak Response&quot; to state your refusal aloud</span>
                 )}
               </div>
 
@@ -465,7 +465,7 @@ export default function RoleplayPage() {
               >
                 <div className="space-y-1">
                   <div className="text-xs font-bold text-white">{s.scenario}</div>
-                  <div className="text-[11px] text-zinc-400 italic">"{s.summary}"</div>
+                  <div className="text-[11px] text-zinc-400 italic">&quot;{s.summary}&quot;</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-sm font-extrabold text-[#14B8A6]">{s.score} PTS</div>

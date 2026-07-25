@@ -42,8 +42,8 @@ export default function CheckInPage() {
   const { volume, waveform } = useAudioVisualizer(isRecording);
 
   // Speech Recognition Ref
-  const recognitionRef = useRef<any>(null);
-  const timerRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSpeechTimeRef = useRef<number>(Date.now());
 
   // Fetch past sessions from Supabase
@@ -101,7 +101,7 @@ export default function CheckInPage() {
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         let finalStr = '';
         let interimStr = '';
 
