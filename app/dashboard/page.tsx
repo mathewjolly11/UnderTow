@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Sidebar } from '@/components/Sidebar';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Mic,
   Activity,
@@ -27,7 +28,11 @@ import {
 } from 'recharts';
 
 export default function DashboardPage() {
+  const { profile, user } = useAuth();
   const latestSession = MOCK_VOICE_SESSIONS[0];
+
+  const displayName = profile?.name || user?.email?.split('@')[0] || MOCK_PROFILE.name;
+  const userGoal = profile?.recovery_goal || MOCK_PROFILE.recovery_goal;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] bg-[#09090B]">
@@ -41,10 +46,10 @@ export default function DashboardPage() {
               <Flame className="h-4 w-4" /> 42 Day Recovery Streak
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, {MOCK_PROFILE.name.split(' ')[0]}
+              Welcome back, {displayName.split(' ')[0]}
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-              Goal: {MOCK_PROFILE.recovery_goal}
+              Goal: {userGoal}
             </p>
           </div>
 

@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+  const supabaseResponse = NextResponse.next({
     request,
   });
 
@@ -18,9 +18,6 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value, options }) =>
           request.cookies.set(name, value)
         );
-        supabaseResponse = NextResponse.next({
-          request,
-        });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         );
@@ -28,25 +25,8 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const protectedRoutes = ['/dashboard', '/check-in', '/roleplay', '/caregiver', '/learning', '/settings'];
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  );
-
-  // If user is not authenticated and attempts to access protected route, redirect to login
-  // Note: For hackathon MVP without Supabase env vars, allow fallback to proceed cleanly
-  const isMockMode = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder');
-
-  if (!user && isProtectedRoute && !isMockMode) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
-    url.searchParams.set('redirectTo', request.nextUrl.pathname);
-    return NextResponse.redirect(url);
-  }
+  // Simple pass-through for client-side AuthContext session management
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 }

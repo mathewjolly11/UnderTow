@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -9,13 +9,20 @@ import { Activity, Mail, Lock, User, AlertCircle, ArrowRight, ShieldCheck } from
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [recoveryGoal, setRecoveryGoal] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // If user is already authenticated, redirect immediately to dashboard
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

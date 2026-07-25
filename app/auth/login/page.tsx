@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -9,12 +9,19 @@ import { Activity, Mail, Lock, AlertCircle, ArrowRight, CheckCircle2 } from 'luc
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [forgotSent, setForgotSent] = useState(false);
+
+  // If user is already authenticated, redirect immediately away from login form
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
