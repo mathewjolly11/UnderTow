@@ -1,15 +1,15 @@
--- ===================================================
--- UNDERTOW DATABASE SCHEMA & ROW LEVEL SECURITY (RLS)
--- ===================================================
+# Undertow SQL Schema & RLS Setup
 
--- 1. Profiles Table
+-- Execute this script in your Supabase SQL Editor:
+
+-- 1. Create Profiles Table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   avatar_url TEXT,
   recovery_goal TEXT,
-  stage TEXT DEFAULT 'Early Maintenance',
+  stage TEXT DEFAULT 'Active Maintenance',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -17,19 +17,16 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view their own profile"
-  ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+  ON public.profiles FOR SELECT USING (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile"
-  ON public.profiles FOR UPDATE
-  USING (auth.uid() = id);
+  ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
 CREATE POLICY "Users can insert their own profile"
-  ON public.profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 
--- 2. User Memory Table (Triggers, Grounding, Safe Contacts)
+-- 2. Create User Memory Table
 CREATE TABLE IF NOT EXISTS public.user_memory (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
@@ -43,16 +40,11 @@ CREATE TABLE IF NOT EXISTS public.user_memory (
 
 ALTER TABLE public.user_memory ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own memory"
-  ON public.user_memory FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert/update their own memory"
-  ON public.user_memory FOR ALL
-  USING (auth.uid() = user_id);
+CREATE POLICY "Users can manage their own memory"
+  ON public.user_memory FOR ALL USING (auth.uid() = user_id);
 
 
--- 3. Voice Sessions Table
+-- 3. Create Voice Sessions Table
 CREATE TABLE IF NOT EXISTS public.voice_sessions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -68,15 +60,13 @@ CREATE TABLE IF NOT EXISTS public.voice_sessions (
 ALTER TABLE public.voice_sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view their own voice sessions"
-  ON public.voice_sessions FOR SELECT
-  USING (auth.uid() = user_id);
+  ON public.voice_sessions FOR SELECT USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can insert their own voice sessions"
-  ON public.voice_sessions FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  ON public.voice_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 
--- 4. Roleplay Sessions Table
+-- 4. Create Roleplay Sessions Table
 CREATE TABLE IF NOT EXISTS public.roleplay_sessions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -90,11 +80,10 @@ CREATE TABLE IF NOT EXISTS public.roleplay_sessions (
 ALTER TABLE public.roleplay_sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own roleplay sessions"
-  ON public.roleplay_sessions FOR ALL
-  USING (auth.uid() = user_id);
+  ON public.roleplay_sessions FOR ALL USING (auth.uid() = user_id);
 
 
--- 5. Caregiver Profiles Table
+-- 5. Create Caregiver Profiles Table
 CREATE TABLE IF NOT EXISTS public.caregiver_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -107,11 +96,10 @@ CREATE TABLE IF NOT EXISTS public.caregiver_profiles (
 ALTER TABLE public.caregiver_profiles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own caregiver profiles"
-  ON public.caregiver_profiles FOR ALL
-  USING (auth.uid() = user_id);
+  ON public.caregiver_profiles FOR ALL USING (auth.uid() = user_id);
 
 
--- 6. Learning History Table
+-- 6. Create Learning History Table
 CREATE TABLE IF NOT EXISTS public.learning_history (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -123,11 +111,10 @@ CREATE TABLE IF NOT EXISTS public.learning_history (
 ALTER TABLE public.learning_history ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own learning history"
-  ON public.learning_history FOR ALL
-  USING (auth.uid() = user_id);
+  ON public.learning_history FOR ALL USING (auth.uid() = user_id);
 
 
--- Automatically create profile on new user signup trigger
+-- 7. Automated Profile Trigger on Signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN

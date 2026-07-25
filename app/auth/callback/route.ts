@@ -1,12 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClientServer } from '@/lib/supabase/server';
+import { NextRequest } from 'next/server';
 
-export default async function AuthCallbackPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ code?: string }>;
-}) {
-  const { code } = await searchParams;
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const code = searchParams.get('code');
 
   if (code) {
     const supabase = await createClientServer();

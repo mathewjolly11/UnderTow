@@ -8,12 +8,6 @@ import {
   ShieldCheck,
   TrendingUp,
   Brain,
-  Zap,
-  Users,
-  CheckCircle2,
-  Calendar,
-  AlertCircle,
-  Play,
   Flame,
 } from 'lucide-react';
 import {
@@ -173,7 +167,7 @@ export default function DashboardPage() {
               </div>
               <h3 className="text-base font-bold text-white mb-2">Emergency Grounding Script</h3>
               <p className="text-xs text-zinc-300 bg-[#09090B] p-3.5 rounded-2xl border border-[#27272A] leading-relaxed italic">
-                "{MOCK_MEMORY.emergency_script}"
+                &quot;{MOCK_MEMORY.emergency_script}&quot;
               </p>
             </div>
 
@@ -228,7 +222,7 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-300 line-clamp-2 italic">
-                    "{session.transcript}"
+                    &quot;{session.transcript}&quot;
                   </p>
                   <div className="flex items-center gap-4 text-[10px] text-zinc-500 pt-1">
                     <span>Rate: {session.speech_rate} WPM</span>

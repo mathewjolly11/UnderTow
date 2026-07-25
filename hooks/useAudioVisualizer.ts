@@ -1,0 +1,92 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+
+export function useAudioVisualizer(isRecording: boolean) {
+  const [audioMetrics, setAudioMetrics] = useState({
+    volume: 0,
+    waveform: Array(30).fill(10),
+  });
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isRecording) {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+      }
+      requestAnimationFrame(() => {
+        setAudioMetrics({ volume: 0, waveform: Array(30).fill(10) });
+      });
+      return;
+    }
+
+    async function initAudio() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+
+        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const audioCtx = new AudioContextClass();
+        audioCtxRef.current = audioCtx;
+
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        analyserRef.current = analyser;
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        const renderWaveform = () => {
+          analyser.getByteFrequencyData(dataArray);
+
+          // Calculate average volume
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const avgVolume = Math.min(100, Math.round(sum / dataArray.length));
+
+          // Slice waveform bars
+          const waveformBars = Array.from(dataArray.slice(0, 30)).map((val) =>
+            Math.max(8, Math.round((val / 255) * 80))
+          );
+
+          setAudioMetrics({
+            volume: avgVolume,
+            waveform: waveformBars.length < 30 ? [...waveformBars, ...Array(30 - waveformBars.length).fill(10)] : waveformBars,
+          });
+
+          animFrameRef.current = requestAnimationFrame(renderWaveform);
+        };
+
+        renderWaveform();
+      } catch (err) {
+        console.warn('Microphone audio context access blocked or unavailable:', err);
+      }
+    }
+
+    initAudio();
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+      }
+    };
+  }, [isRecording]);
+
+  return audioMetrics;
+}
