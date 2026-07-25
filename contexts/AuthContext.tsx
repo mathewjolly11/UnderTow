@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshProfile = async () => {
-    if (!user) return;
+    if (!user || user.id === 'usr_demo_123') return;
     const { data: prof } = await supabase
       .from('profiles')
       .select('*')

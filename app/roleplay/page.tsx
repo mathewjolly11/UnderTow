@@ -42,6 +42,7 @@ export default function RoleplayPage() {
   // Summary State
   const [sessionSummary, setSessionSummary] = useState<RoleplaySummary | null>(null);
   const [pastSessions, setPastSessions] = useState<RoleplaySession[]>(MOCK_ROLEPLAY_SESSIONS);
+  const [isSupported, setIsSupported] = useState(true);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -65,6 +66,16 @@ export default function RoleplayPage() {
     }
     loadSessions();
   }, [user]);
+
+  // Check Browser Support
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const win = window as unknown as IWindowSpeech;
+      if (!win.SpeechRecognition && !win.webkitSpeechRecognition) {
+        setIsSupported(false);
+      }
+    }
+  }, []);
 
   const personas = [
     {
@@ -364,7 +375,14 @@ export default function RoleplayPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                {!isListening ? (
+                {!isSupported ? (
+                  <button
+                    disabled
+                    className="px-8 py-3.5 rounded-2xl bg-[#18181B] border border-[#27272A] text-xs font-bold text-zinc-500 cursor-not-allowed flex items-center gap-2"
+                  >
+                    Voice Features Require Chrome/Edge
+                  </button>
+                ) : !isListening ? (
                   <button
                     onClick={startVoiceInput}
                     disabled={isAiThinking}

@@ -32,6 +32,7 @@ export default function CheckInPage() {
   const [interimText, setInterimText] = useState('');
   const [pauseCount, setPauseCount] = useState(0);
   const [pastSessions, setPastSessions] = useState<VoiceSession[]>(MOCK_VOICE_SESSIONS);
+  const [isSupported, setIsSupported] = useState(true);
 
   // Audio Visualizer
   const { volume, waveform } = useAudioVisualizer(isRecording);
@@ -77,6 +78,16 @@ export default function CheckInPage() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isRecording]);
+
+  // Check Browser Support
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const win = window as unknown as IWindowSpeech;
+      if (!win.SpeechRecognition && !win.webkitSpeechRecognition) {
+        setIsSupported(false);
+      }
+    }
+  }, []);
 
   // Speech Recognition setup
   const startRecording = () => {
@@ -338,7 +349,14 @@ export default function CheckInPage() {
 
           {/* Primary Action Button */}
           <div className="pt-2 flex items-center gap-4">
-            {!isRecording ? (
+            {!isSupported ? (
+              <button
+                disabled
+                className="px-8 py-3.5 rounded-2xl bg-[#18181B] border border-[#27272A] text-sm font-bold text-zinc-500 cursor-not-allowed flex items-center gap-2"
+              >
+                Voice Features Require Chrome/Edge
+              </button>
+            ) : !isRecording ? (
               <button
                 onClick={startRecording}
                 className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-sm font-bold text-white shadow-xl shadow-[#6366F1]/25 hover:opacity-95 hover:scale-[1.02] transition-all flex items-center gap-2"

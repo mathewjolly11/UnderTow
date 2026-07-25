@@ -1,15 +1,33 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 import { User, Heart } from 'lucide-react';
 import { MOCK_PROFILE, MOCK_MEMORY } from '@/lib/mockData';
+import { UserMemory } from '@/types/database';
 
 export default function SettingsPage() {
   const { profile, user } = useAuth();
+  const [memory, setMemory] = useState<UserMemory | null>(null);
+
+  useEffect(() => {
+    async function loadMemory() {
+      if (!user?.id) return;
+      const { data } = await supabase.from('user_memory').select('*').eq('user_id', user.id).single();
+      if (data) {
+        setMemory(data);
+      }
+    }
+    loadMemory();
+  }, [user]);
 
   const displayName = profile?.name || user?.email?.split('@')[0] || MOCK_PROFILE.name;
   const displayEmail = profile?.email || user?.email || MOCK_PROFILE.email;
+  
+  const triggers = memory?.trigger || MOCK_MEMORY.trigger;
+  const reasonsToRecover = memory?.reasons_to_recover || MOCK_MEMORY.reasons_to_recover;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] bg-[#09090B]">
@@ -59,7 +77,7 @@ export default function SettingsPage() {
             <div>
               <label className="text-zinc-400 font-medium">Registered Triggers</label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {MOCK_MEMORY.trigger.map((t, i) => (
+                {triggers.map((t, i) => (
                   <span key={i} className="px-3 py-1 rounded-lg bg-[#18181B] border border-[#27272A] text-zinc-300">
                     {t}
                   </span>
@@ -69,7 +87,7 @@ export default function SettingsPage() {
             <div className="pt-2">
               <label className="text-zinc-400 font-medium">Reasons to Recover</label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {MOCK_MEMORY.reasons_to_recover.map((r, i) => (
+                {reasonsToRecover.map((r, i) => (
                   <span key={i} className="px-3 py-1 rounded-lg bg-[#14B8A6]/10 border border-[#14B8A6]/20 text-[#14B8A6]">
                     {r}
                   </span>
