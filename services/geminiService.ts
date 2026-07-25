@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { AcousticMetrics } from '@/components/StressMeter';
 import { UserMemory } from '@/types/database';
+import { getGeminiApiKey, rotateGeminiApiKey } from '@/services/geminiKeyRotation';
 
 export interface GeminiStressEvaluation {
   classification: 'Calm' | 'Elevated' | 'Crisis';
@@ -14,7 +15,7 @@ export async function evaluateStressWithGemini(
   metrics: AcousticMetrics,
   userMemory?: UserMemory | null
 ): Promise<GeminiStressEvaluation> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
     // Elegant fallback if API key is not yet set in local environment
@@ -89,8 +90,11 @@ REQUIRED JSON FORMAT:
       };
     }
     throw new Error('Empty text from Gemini response');
-  } catch (err) {
+  } catch (err: any) {
     console.warn('Gemini API evaluation fallback:', err);
+    if (err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota')) {
+      rotateGeminiApiKey();
+    }
     return {
       classification: metrics.stressState === 'Acute' ? 'Crisis' : metrics.stressState === 'High' ? 'Elevated' : 'Calm',
       confidence: 0.88,
