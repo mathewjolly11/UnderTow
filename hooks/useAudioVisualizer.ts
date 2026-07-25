@@ -40,9 +40,13 @@ export function useAudioVisualizer(isRecording: boolean) {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        try {
+          audioCtxRef.current.close();
+        } catch {}
+        audioCtxRef.current = null;
       }
       requestAnimationFrame(() => {
         setAudioMetrics({ volume: 0, waveform: Array(30).fill(10) });
@@ -76,7 +80,9 @@ export function useAudioVisualizer(isRecording: boolean) {
 
         renderWaveform();
       } catch (err) {
-        console.warn('Microphone audio context access blocked or unavailable:', err);
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Microphone audio context access blocked or unavailable:', err);
+        }
       }
     }
 
@@ -86,9 +92,13 @@ export function useAudioVisualizer(isRecording: boolean) {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        try {
+          audioCtxRef.current.close();
+        } catch {}
+        audioCtxRef.current = null;
       }
     };
   }, [isRecording]);
