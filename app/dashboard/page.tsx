@@ -27,10 +27,61 @@ import {
   Tooltip,
 } from 'recharts';
 
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import { VoiceSession, RoleplaySession, UserMemory } from '@/types/database';
+
 export default function DashboardPage() {
   const { profile, user } = useAuth();
-  const latestSession = MOCK_VOICE_SESSIONS[0];
+  const [dbVoiceSessions, setDbVoiceSessions] = useState<VoiceSession[]>(MOCK_VOICE_SESSIONS);
+  const [dbRoleplaySessions, setDbRoleplaySessions] = useState<RoleplaySession[]>(MOCK_ROLEPLAY_SESSIONS);
+  const [dbUserMemory, setDbUserMemory] = useState<UserMemory>(MOCK_MEMORY);
 
+  useEffect(() => {
+    async function loadLiveDashboardData() {
+      if (!user?.id) return;
+      try {
+        // 1. Fetch live voice sessions
+        const { data: voiceData } = await supabase
+          .from('voice_sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (voiceData && voiceData.length > 0) {
+          setDbVoiceSessions(voiceData);
+        }
+
+        // 2. Fetch live roleplay sessions
+        const { data: roleplayData } = await supabase
+          .from('roleplay_sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (roleplayData && roleplayData.length > 0) {
+          setDbRoleplaySessions(roleplayData);
+        }
+
+        // 3. Fetch live user memory
+        const { data: memData } = await supabase
+          .from('user_memory')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (memData) {
+          setDbUserMemory(memData);
+        }
+      } catch (err) {
+        console.warn('Dashboard live query notice:', err);
+      }
+    }
+
+    loadLiveDashboardData();
+  }, [user]);
+
+  const latestSession = dbVoiceSessions[0] || MOCK_VOICE_SESSIONS[0];
   const displayName = profile?.name || user?.email?.split('@')[0] || MOCK_PROFILE.name;
   const userGoal = profile?.recovery_goal || MOCK_PROFILE.recovery_goal;
 
@@ -172,7 +223,7 @@ export default function DashboardPage() {
               </div>
               <h3 className="text-base font-bold text-white mb-2">Emergency Grounding Script</h3>
               <p className="text-xs text-zinc-300 bg-[#09090B] p-3.5 rounded-2xl border border-[#27272A] leading-relaxed italic">
-                &quot;{MOCK_MEMORY.emergency_script}&quot;
+                &quot;{dbUserMemory.emergency_script || MOCK_MEMORY.emergency_script}&quot;
               </p>
             </div>
 
@@ -180,8 +231,12 @@ export default function DashboardPage() {
               <div className="text-xs font-semibold text-zinc-400">Safe Contact Person</div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-[#18181B] border border-[#27272A]">
                 <div>
-                  <div className="text-xs font-semibold text-white">{MOCK_MEMORY.safe_people[0].name}</div>
-                  <div className="text-[10px] text-zinc-400">{MOCK_MEMORY.safe_people[0].relationship}</div>
+                  <div className="text-xs font-semibold text-white">
+                    {dbUserMemory.safe_people?.[0]?.name || MOCK_MEMORY.safe_people[0].name}
+                  </div>
+                  <div className="text-[10px] text-zinc-400">
+                    {dbUserMemory.safe_people?.[0]?.relationship || MOCK_MEMORY.safe_people[0].relationship}
+                  </div>
                 </div>
                 <button className="px-3 py-1.5 rounded-lg bg-[#14B8A6]/20 border border-[#14B8A6]/30 text-xs font-medium text-[#14B8A6] hover:bg-[#14B8A6]/30">
                   Call Now
@@ -205,7 +260,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {MOCK_VOICE_SESSIONS.map((session) => (
+              {dbVoiceSessions.map((session) => (
                 <div
                   key={session.id}
                   className="p-4 rounded-2xl bg-[#18181B]/60 border border-[#27272A] space-y-2 hover:border-zinc-700 transition-all"
@@ -251,7 +306,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {MOCK_ROLEPLAY_SESSIONS.map((rp) => (
+              {dbRoleplaySessions.map((rp) => (
                 <div
                   key={rp.id}
                   className="p-4 rounded-2xl bg-[#18181B]/60 border border-[#27272A] space-y-2 hover:border-zinc-700 transition-all"

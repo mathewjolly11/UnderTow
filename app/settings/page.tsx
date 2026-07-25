@@ -1,10 +1,16 @@
 'use client';
 
 import { Sidebar } from '@/components/Sidebar';
+import { useAuth } from '@/contexts/AuthContext';
 import { Settings, Shield, User, Heart, Key } from 'lucide-react';
 import { MOCK_PROFILE, MOCK_MEMORY } from '@/lib/mockData';
 
 export default function SettingsPage() {
+  const { profile, user } = useAuth();
+
+  const displayName = profile?.name || user?.email?.split('@')[0] || MOCK_PROFILE.name;
+  const displayEmail = profile?.email || user?.email || MOCK_PROFILE.email;
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] bg-[#09090B]">
       <Sidebar />
@@ -29,7 +35,7 @@ export default function SettingsPage() {
               <label className="text-zinc-400 font-medium">Name</label>
               <input
                 readOnly
-                value={MOCK_PROFILE.name}
+                value={displayName}
                 className="w-full mt-1 p-3 rounded-xl bg-[#18181B] border border-[#27272A] text-white"
               />
             </div>
@@ -37,7 +43,7 @@ export default function SettingsPage() {
               <label className="text-zinc-400 font-medium">Email</label>
               <input
                 readOnly
-                value={MOCK_PROFILE.email}
+                value={displayEmail}
                 className="w-full mt-1 p-3 rounded-xl bg-[#18181B] border border-[#27272A] text-white"
               />
             </div>

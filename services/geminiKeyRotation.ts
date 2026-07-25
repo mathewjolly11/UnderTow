@@ -10,7 +10,10 @@ export function getGeminiApiKey(): string | null {
   if (!rawPool) return null;
 
   // Split by comma in case multiple keys are provided: "key1,key2,key3"
-  const keys = rawPool.split(',').map((k) => k.trim()).filter(Boolean);
+  const keys = rawPool
+    .split(',')
+    .map((k) => k.trim())
+    .filter((k) => k.startsWith('AIza'));
   if (keys.length === 0) return null;
 
   return keys[currentKeyIndex % keys.length];

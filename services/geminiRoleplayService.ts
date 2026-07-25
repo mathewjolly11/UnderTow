@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiApiKey, rotateGeminiApiKey } from '@/services/geminiKeyRotation';
 
 export interface RoleplayMessage {
   sender: 'user' | 'partner';
@@ -6,10 +7,10 @@ export interface RoleplayMessage {
 }
 
 export interface RoleplaySummary {
-  score: number; // 0-100
+  score: number; // 0 to 100
   summary: string;
   strengths: string[];
-  improvements: string[];
+  growthAreas: string[];
 }
 
 export async function generateRoleplayResponse(
@@ -17,7 +18,7 @@ export async function generateRoleplayResponse(
   persona: 'Friend' | 'Family' | 'Dealer' | 'Coworker' | 'Custom',
   chatHistory: RoleplayMessage[]
 ): Promise<string> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
     // Fallback response generator if API key is not configured
@@ -53,23 +54,32 @@ INSTRUCTIONS:
 2. Keep responses brief (1-3 sentences maximum) so the user can reply easily.
 3. Challenge the user's refusal gently or firmly according to persona intensity, but NEVER use hate speech or dangerous instructions.
 4. Do NOT include meta-commentary (like "As your friend..."). Speak directly as the character.
+5. NEVER repeat the exact same sentence twice in a row. React dynamically to what the user said: "${chatHistory[chatHistory.length - 1]?.text || ''}".
 `;
 
     const formattedHistory = chatHistory
       .map((m) => `${m.sender === 'user' ? 'USER' : 'PARTNER'}: ${m.text}`)
       .join('\n');
 
-    const prompt = `${systemPrompt}\n\nCONVERSATION HISTORY:\n${formattedHistory}\n\nPARTNER (reply in 1-3 sentences):`;
+    const prompt = `${systemPrompt}\n\nCONVERSATION HISTORY:\n${formattedHistory}\n\nPARTNER (reply dynamically in 1-3 new sentences):`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
 
-    return response.text?.trim() || "I hear you, but are you sure about that?";
-  } catch (err) {
+    return response.text?.trim() || "I hear your refusal, but I really think you should join us for just one round.";
+  } catch (err: any) {
     console.warn('Gemini roleplay partner fallback:', err);
-    return "I see. Take your time, but are you sure you don't want to reconsider?";
+    if (err?.status === 429 || err?.status === 401 || err?.message?.includes('429') || err?.message?.includes('401') || err?.message?.includes('UNAUTHENTICATED')) {
+      rotateGeminiApiKey();
+    }
+    const dynamicFallbacks = [
+      `I hear you saying "${chatHistory[chatHistory.length - 1]?.text || 'no'}", but why not just take a small break with us?`,
+      `Are you completely sure about that? We've all been looking forward to catching up tonight.`,
+      `I respect your decision, but I'm going to miss having you around for this event!`,
+    ];
+    return dynamicFallbacks[chatHistory.length % dynamicFallbacks.length];
   }
 }
 
@@ -78,14 +88,14 @@ export async function summarizeRoleplaySession(
   persona: string,
   chatHistory: RoleplayMessage[]
 ): Promise<RoleplaySummary> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
     return {
       score: 88,
       summary: `Successfully maintained refusal boundaries against the ${persona} during the "${scenario}" scenario without apologizing or giving in.`,
       strengths: ['Direct clear refusal', 'Used non-defensive tone', 'Maintained composure'],
-      improvements: ['Could pivot to an alternative activity faster'],
+      growthAreas: ['Could pivot to an alternative activity faster'],
     };
   }
 
@@ -107,7 +117,7 @@ Return a valid JSON object matching this schema:
   "score": 92,
   "summary": "Brief 2-sentence breakdown of how well the user held boundaries.",
   "strengths": ["Strength 1", "Strength 2"],
-  "improvements": ["Improvement suggestion"]
+  "growthAreas": ["Improvement suggestion"]
 }
 `;
 
@@ -123,7 +133,7 @@ Return a valid JSON object matching this schema:
         score: typeof parsed.score === 'number' ? parsed.score : 85,
         summary: parsed.summary || 'Completed roleplay session with solid boundary control.',
         strengths: parsed.strengths || ['Maintained clear refusal'],
-        improvements: parsed.improvements || ['Practice urge surfing techniques'],
+        growthAreas: parsed.growthAreas || parsed.improvements || ['Practice urge surfing techniques'],
       };
     }
     throw new Error('Empty summary output');
@@ -133,7 +143,7 @@ Return a valid JSON object matching this schema:
       score: 85,
       summary: 'Maintained refusal boundaries and asserted control throughout the scenario.',
       strengths: ['Clear direct communication', 'Stayed calm under pressure'],
-      improvements: ['State personal reason if comfortable'],
+      growthAreas: ['Practice rapid exit strategy'],
     };
   }
 }

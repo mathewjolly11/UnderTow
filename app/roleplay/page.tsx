@@ -379,14 +379,14 @@ export default function RoleplayPage() {
                     disabled={isAiThinking}
                     className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6366F1] to-[#4F46E5] text-xs font-bold text-white shadow-xl shadow-[#6366F1]/25 hover:opacity-95 transition-all flex items-center gap-2"
                   >
-                    <Mic className="h-4 w-4" /> Speak Response
+                    <Mic className="h-4 w-4" /> Press to Speak Refusal
                   </button>
                 ) : (
                   <button
                     onClick={stopVoiceInputAndSend}
-                    className="px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-xl shadow-emerald-600/30 transition-all flex items-center gap-2"
+                    className="px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-xl shadow-emerald-600/30 transition-all flex items-center gap-2 animate-pulse"
                   >
-                    <Square className="h-4 w-4 fill-white" /> Submit Response to Partner
+                    <Square className="h-4 w-4 fill-white" /> Finish & Send Turn to AI
                   </button>
                 )}
               </div>
@@ -434,7 +434,7 @@ export default function RoleplayPage() {
                   <Brain className="h-4 w-4" /> Growth Areas
                 </span>
                 <ul className="space-y-1 text-zinc-300">
-                  {sessionSummary.improvements.map((imp, i) => (
+                  {sessionSummary.growthAreas.map((imp: string, i: number) => (
                     <li key={i}>• {imp}</li>
                   ))}
                 </ul>
